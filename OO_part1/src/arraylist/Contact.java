@@ -1,4 +1,4 @@
-package arraylistchallenge;
+package arraylist;
 
 public class Contact {
 	private String name;

@@ -1,9 +1,9 @@
-package arraylistchallenge;
+package arraylist;
 
 import java.security.KeyStore.PrivateKeyEntry;
 import java.util.Scanner;
 
-public class Main {
+public class Challenge {
 	
 	private static Scanner scanner = new Scanner(System.in);
 	private static MobilePhone mobilePhone = new MobilePhone("0039 330 4404");
