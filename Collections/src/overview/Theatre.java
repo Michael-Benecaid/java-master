@@ -1,18 +1,17 @@
 package overview;
 
-import java.util.List;
-import java.util.ArrayList;
+import java.util.*;
 
 public class Theatre {
 	private final String theatreName;
-	private List<Seat> seats = new ArrayList<>();
+	public List<Seat> seats = new LinkedList<>();
 	
 	public Theatre(String theatreName, int numRows, int seatsPerRow) {
 		this.theatreName = theatreName;
 		
 		int lastRow = 'A' + (numRows - 1);
 		for (char row = 'A'; row <= lastRow; row ++) {
-			for (int seatNum = 1; seatNum < seatsPerRow; seatNum ++) {
+			for (int seatNum = 1; seatNum <= seatsPerRow; seatNum ++) {
 				Seat seat = new Seat(row + String.format("%02d", seatNum));
 				seats.add(seat);
 			}
@@ -26,18 +25,27 @@ public class Theatre {
 	}
 
 	public boolean reserveSeat(String seatNumber) {
-		Seat requestSeat = null;
-		for(Seat seat: seats) {
-			if(seat.getSeatNumber().equals(seatNumber)) {
-				requestSeat = seat;
-				break;
-			}
-		}
-		if(requestSeat == null) {
+		Seat requestSeat = new Seat(seatNumber);
+		int foundSeat = Collections.binarySearch(seats, requestSeat, null);
+		
+		if(foundSeat >= 0) {
+			return seats.get(foundSeat).reserve();
+		} else {
 			System.out.println("There is no seat " + seatNumber);
 			return false;
 		}
-		return requestSeat.reserve();
+		
+//		for(Seat seat: seats) {
+//			if(seat.getSeatNumber().equals(seatNumber)) {
+//				requestSeat = seat;
+//				break;
+//			} else {
+//		}
+//		if(requestSeat == null) {
+//			System.out.println("There is no seat " + seatNumber);
+//			return false;
+//		}
+//		return requestSeat.reserve();
 	}
 	
 	public void getSeats() {
@@ -46,7 +54,7 @@ public class Theatre {
 		}
 	}
 	
-	private class Seat{
+	public class Seat implements Comparable<Seat>{
 		private final String seatNumber;
 		private boolean reserved = false;
 		
@@ -76,6 +84,12 @@ public class Theatre {
 			} else {
 				return false;
 			}
+		}
+
+		@Override
+		public int compareTo(Seat seat) {
+			// TODO Auto-generated method stub
+			return this.seatNumber.compareToIgnoreCase(seat.getSeatNumber());
 		}
 	}
 }
