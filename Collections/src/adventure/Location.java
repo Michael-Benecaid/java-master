@@ -12,7 +12,11 @@ public class Location {
 		super();
 		this.locationID = locationID;
 		this.description = description;
-		this.exits = new HashMap<>(exits);
+		if (exits != null) {
+			this.exits = new HashMap<>(exits);
+		} else {
+			this.exits = new HashMap<>();
+		}
 		exits.put("Q", 0);
 	}
    
