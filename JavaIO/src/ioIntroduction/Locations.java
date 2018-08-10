@@ -1,72 +1,113 @@
 package ioIntroduction;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.DataInput;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.EOFException;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Scanner;
 import java.util.Set;
 
 public class Locations implements Map<Integer, Location>{
-	private static Map<Integer, Location> locations = new HashMap<>();
+	private static Map<Integer, Location> locations = new LinkedHashMap<>();
 
-	public static void main(String[] args) {
-		FileWriter locFile = null;
-		try {
-			locFile = new FileWriter("locations.txt");
-			for (Location location: locations.values()) {
-				locFile.write(location.getLocationID() + "," + location.getDescription() + "\n");
-			}
-		} catch (IOException e) {
-			System.out.println("In catch block");
-			e.printStackTrace();
-			// TODO: handle exception
-		} finally {
-			System.out.println("in finally block");
-			try {
-				if(locFile != null) {
-					System.out.println("Attempting to close locfile");
-					locFile.close();
+	public static void main(String[] args) throws IOException{
+//		try (BufferedWriter locFile = new BufferedWriter(new FileWriter("locations.txt"));
+//			 BufferedWriter dirFile = new BufferedWriter(new FileWriter("directions.txt"))) {
+//			for (Location location: locations.values()) {
+//				locFile.write(location.getLocationID()+ "," + location.getDescription() + "\n");
+//				for(String direction: location.getExists().keySet()) {
+//					dirFile.write(location.getLocationID() + ", " + direction + ", " + location.getExists().get(direction) + "\n");
+//				}
+//			}
+//		}
+		try(DataOutputStream locFile = new DataOutputStream(new BufferedOutputStream(new FileOutputStream("location.dat")))) {
+			for(Location location: locations.values()) {
+				locFile.writeInt(location.getLocationID());
+				locFile.writeUTF(location.getDescription());
+				System.out.println("Writing locaiton" + location.getLocationID() + " : " + location.getDescription());
+				System.out.println("Writing " + (location.getExists().size() -1) + "exits");
+				locFile.writeInt(location.getExists().size() -1);
+				for(String direction: location.getExists().keySet()) {
+					if(!direction.equals("Q")) {
+						System.out.println("\t\t" + direction + ", " + location.getExists().get(direction));
+						locFile.writeUTF(direction);
+						locFile.writeInt(location.getExists().get(direction));
+					}
 				}
-			} catch (IOException e) {
-				// TODO: handle exception
-				e.printStackTrace();
 			}
 		}
 	}
 	static {
-		Map<String, Integer> tempExit = new HashMap<String, Integer>();
-		locations.put(0, new Location(0, "Computer", tempExit));
-		
-		tempExit = new HashMap<String, Integer>();
-		tempExit.put("W", 2);
-		tempExit.put("E", 3);
-		tempExit.put("S", 4);
-		tempExit.put("N", 5);
-//		tempExit.put("Q", 0);
-		locations.put(1, new Location(1, "Road", tempExit));
-		
-		tempExit = new HashMap<String, Integer>();
-		tempExit.put("N", 5);
-		tempExit.put("S", 4);
-//		tempExit.put("Q", 0);
-		locations.put(2, new Location(2, "Hill", tempExit));
-		
-		tempExit = new HashMap<String, Integer>();
-		tempExit.put("W", 1);
-		tempExit.put("Q", 0);
-		locations.put(3, new Location(3, "Building", tempExit));
-		
-		tempExit = new HashMap<String, Integer>();
-		tempExit.put("N", 1);
-		tempExit.put("W", 2);
-//		tempExit.put("Q", 0);
-		
-		tempExit = new HashMap<String, Integer>();
-		tempExit.put("S", 1);
-		tempExit.put("W", 2);
-//		tempExit.put("Q", 0);
-		locations.put(4, new Location(4, "Valley", tempExit));
+		try (DataInputStream locFile = new DataInputStream(new BufferedInputStream(new FileInputStream("location.dat")))) {
+			boolean eof = false;
+			while(!eof) {
+				try {
+					Map<String, Integer> exits = new LinkedHashMap<>();
+					int locID = locFile.readInt();
+					String description  = locFile.readUTF();
+					int numExit = locFile.readInt();
+					System.out.println("Read locaiton " + locID + " : " + description);
+					System.out.println("Found " + numExit + " exits");
+					for(int i=0; i<numExit; i++) {
+						String direction = locFile.readUTF();
+						int destination = locFile.readInt();
+						exits.put(direction, destination);
+						System.out.println("\t\t" + direction + "," + destination);
+					}
+					locations.put(locID, new Location(locID, description, exits));
+				} catch (EOFException e) {
+					// TODO: handle exception
+					eof = true;
+				}
+			}
+		} catch (IOException e) {
+			// TODO: handle exception
+			System.out.println("IO Exception");
+		}
+//		try(Scanner scanner = new Scanner(new BufferedReader(new FileReader("locations_big.txt")))){
+//			scanner.useDelimiter(",");
+//			while(scanner.hasNextLine()) {
+//				int loc= scanner.nextInt();
+//				scanner.skip(scanner.delimiter());
+//				String description = scanner.nextLine();
+//				System.out.println("Imported : " + loc + ": " + description);
+//				Map<String, Integer> tempExit = new HashMap<>();
+//				locations.put(loc, new Location(loc, description, tempExit));
+//			}
+//		} catch (IOException e) {
+//			// TODO: handle exception
+//			e.printStackTrace();
+//		}
+//		
+//		try(BufferedReader dirFile = new BufferedReader(new FileReader("directions_big.txt"))) {
+//			String input;
+//			while((input = dirFile.readLine()) != null) {
+//				String[] data = input.split(",");
+//				int loc= Integer.parseInt(data[0]);
+//				String direction = data[1];
+//				int destination = Integer.parseInt(data[2]);
+//				System.out.println(loc + ": " + direction+ " : " + destination);
+//				Location location = locations.get(loc);
+//				location.addExit(direction, destination);
+//			} 
+//		} catch (IOException e) {
+//			// TODO: handle exception
+//			e.printStackTrace();
+//		} 
 	}
 	
 	@Override
