@@ -26,11 +26,14 @@ import java.util.Map;
 import java.util.Scanner;
 import java.util.Set;
 
+import javax.imageio.event.IIOReadWarningListener;
+
 import javafx.scene.chart.PieChart.Data;
 
 public class Locations implements Map<Integer, Location>{
 	private static Map<Integer, Location> locations = new LinkedHashMap<>();
-	private static Map<Integer, IndexRecord> index = new LinkedHashMap<>(); 
+	private static Map<Integer, IndexRecord> index = new LinkedHashMap<>();
+	private static RandomAccessFile ra;
 
 	public static void main(String[] args) throws IOException{
 		try (RandomAccessFile rao = new RandomAccessFile("locations_rand.dat", "rwd")) {
@@ -60,6 +63,13 @@ public class Locations implements Map<Integer, Location>{
 				index.put(location.getLocationID(), record);
 				
 				startPointer = (int) rao.getFilePointer();
+			}
+			
+			rao.seek(indexStart);
+			for(Integer locationID : index.keySet()) {
+				rao.writeInt(locationID);
+				rao.writeInt(index.get(locationID).getStartByte());
+				rao.writeLong(index.get(locationID).getLength());
 			}
 		}
 //		try (BufferedWriter locFile = new BufferedWriter(new FileWriter("locations.txt"));
@@ -95,27 +105,45 @@ public class Locations implements Map<Integer, Location>{
 //		}
 	}
 	static {
-		try (ObjectInputStream locFile = new ObjectInputStream(new BufferedInputStream(new FileInputStream("location.dat")))) {
-			boolean eof = false;
-			while(!eof) {
-				try {
-					Location location = (Location) locFile.readObject();
-					System.out.println("Read Location "+ location.getLocationID() + ": " + location.getDescription());
-					System.out.println("Found "+ location.getExists().size()+ " exits");
-				} catch (EOFException e) {
-					eof = true;
-					// TODO: handle exception
-				}
+		try {
+			ra = new RandomAccessFile("locations_rand.dat", "rwd");
+			int numLocations = ra.readInt();
+			long locationStartPoint = ra.readInt();
+			
+			while(ra.getFilePointer() < locationStartPoint) {
+				int locationId = ra.readInt();
+				int locationStart = ra.readInt();
+				int locationLength = ra.readInt();
+				
+				IndexRecord record = new IndexRecord(locationStart, locationLength);
+				index.put(locationId, record);
 			}
-		} catch(InvalidClassException e) { 
-			System.out.println("InvalidClass exception "+ e.getMessage());
 		} catch (IOException e) {
 			// TODO: handle exception
-			System.out.println("IO Exception");
-		} catch (ClassNotFoundException e) {
-			// TODO: handle exception
-			System.out.println("ClassNotFound exception");
+			System.out.println("IOException");
 		}
+		
+//		try (ObjectInputStream locFile = new ObjectInputStream(new BufferedInputStream(new FileInputStream("location.dat")))) {
+//			boolean eof = false;
+//			while(!eof) {
+//				try {
+//					Location location = (Location) locFile.readObject();
+//					System.out.println("Read Location "+ location.getLocationID() + ": " + location.getDescription());
+//					System.out.println("Found "+ location.getExists().size()+ " exits");
+//				} catch (EOFException e) {
+//					eof = true;
+//					// TODO: handle exception
+//				}
+//			}
+//		} catch(InvalidClassException e) { 
+//			System.out.println("InvalidClass exception "+ e.getMessage());
+//		} catch (IOException e) {
+//			// TODO: handle exception
+//			System.out.println("IO Exception");
+//		} catch (ClassNotFoundException e) {
+//			// TODO: handle exception
+//			System.out.println("ClassNotFound exception");
+//		}
 //			while(!eof) {
 //				try {
 //					Map<String, Integer> exits = new LinkedHashMap<>();
@@ -167,6 +195,28 @@ public class Locations implements Map<Integer, Location>{
 //			// TODO: handle exception
 //			e.printStackTrace();
 //		} 
+	}
+	
+	public Location getLocation(int locationId) throws IOException {
+		IndexRecord record = index.get(locationId);
+		ra.seek(record.getStartByte());
+		int id = ra.readInt();
+		String description = ra.readUTF();
+		String exits = ra.readUTF();
+		String[] exitPart = new String(exits).split(",");
+		
+		Location location = new Location(locationId, description, null);
+		
+		if(locationId != 0) {
+			for(int i=0; i<exitPart.length; i++) {
+				System.out.println("exitPart = " +exitPart[i]);
+				System.out.println("exitPart[+1] = "+ exitPart[i+1]);
+				String direction = exitPart[i];
+				int destination = Integer.parseInt(exitPart[++i]);
+				location.addExit(direction, destination);
+			}
+		}
+		return location;
 	}
 	
 	@Override
@@ -240,6 +290,10 @@ public class Locations implements Map<Integer, Location>{
 	public Set<Entry<Integer, Location>> entrySet() {
 		// TODO Auto-generated method stub
 		return locations.entrySet();
+	}
+	
+	public void close() throws IOException {
+		ra.close();
 	}
 	
 }
