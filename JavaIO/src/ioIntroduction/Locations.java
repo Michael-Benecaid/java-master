@@ -24,7 +24,7 @@ import java.util.Map;
 import java.util.Scanner;
 import java.util.Set;
 
-import javafx.scene.chart.PieChart.Data;
+
 
 public class Locations implements Map<Integer, Location>{
 	private static Map<Integer, Location> locations = new LinkedHashMap<>();
