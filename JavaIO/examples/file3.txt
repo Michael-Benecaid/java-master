@@ -1,0 +1,4 @@
+Files within the sub directory.
+file 1
+file 2
+file 3
