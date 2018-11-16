@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
+import java.nio.file.FileStore;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -65,6 +66,15 @@ public class Main {
             separator = FileSystems.getDefault().getSeparator();
             System.out.println(separator);
 
+            Iterable<FileStore> fileStores = FileSystems.getDefault().getFileStores();
+            for(FileStore store : fileStores){
+                System.out.println(store.name());
+            }
+
+            Iterable<Path> rootPaths =  FileSystems.getDefault().getRootDirectories();
+            for(Path rootPath: rootPaths){
+                System.out.println(rootPath);
+            }
 
         } catch (IOException e) {
             // TODO Auto-generated catch block
