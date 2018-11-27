@@ -34,7 +34,7 @@ public class Main {
 		printEmployeeByAge(employees, "\nEmployees less than 30", employee -> employee.getAge() <= 30);
 
 		Random random = new Random();
-		Supplier<Integer> randomSupplier = () -> random.nextInt(1000);
+		Supplier<Integer> randomSupplier = () -> random.nextInt(10000);
 		for(int i=0; i< 10 ; i++){
 			System.out.println(randomSupplier.get());
 		}
