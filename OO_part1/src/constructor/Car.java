@@ -1,7 +1,5 @@
 package constructor;
 
-import org.omg.CORBA.PRIVATE_MEMBER;
-
 public class Car {
 	private int doors;
 	private int wheels;
