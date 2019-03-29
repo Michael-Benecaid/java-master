@@ -10,5 +10,6 @@ public class Main {
         String alphanum = "addvdaeadsgeEDFESFG";
         System.out.println(alphanum.replaceAll(".", "Y"));
         System.out.println("To do");
+        System.out.print("GG");
     }
 }
