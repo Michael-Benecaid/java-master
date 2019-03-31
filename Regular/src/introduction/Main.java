@@ -10,6 +10,14 @@ public class Main {
         String alphanum = "addvdaeadsgeEDFESFG";
         System.out.println(alphanum.replaceAll(".", "Y"));
         System.out.println("To do");
-        System.out.print("GG");
+        System.out.println("GG");
+    	
+        String newalString= "asgbdsateeeeeF12sageasgGDFjkll1134";
+        System.out.println(newalString.replaceAll("[^ej]", "X"));
+        System.out.println(newalString.replaceAll("\\d", "X"));
+        System.out.println(newalString.replaceAll("\\D", "X"));
+        
+        String sentenceString = "I have a pen";
+        System.out.println(sentenceString.replaceAll("\\b", "X"));
     }
 }
